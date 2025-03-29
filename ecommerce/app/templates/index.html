@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}ShadowFox Marketplace - Multi-Vendor Shopping{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero">
+    <div class="container">
+        <h1 class="fade-in-element">Discover Unique Products from Independent Sellers</h1>
+        <p class="fade-in-element">ShadowFox Marketplace brings together passionate shop owners offering quality products you won't find anywhere else.</p>
+        <div class="fade-in-element">
+            <a class="btn btn-warning btn-lg me-2" href="{{ url_for('shop.products') }}">
+                <i class="fas fa-shopping-bag me-2"></i> Shop Now
+            </a>
+            <a class="btn btn-light btn-lg" href="{{ url_for('main.about') }}">
+                <i class="fas fa-info-circle me-2"></i> Learn More
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-4 section-title">Browse by Category</h2>
+    <div class="category-pills justify-content-center">
+        <a href="{{ url_for('shop.products') }}" class="category-pill active" data-category="all">All Products</a>
+        <a href="{{ url_for('shop.products', category='Electronics') }}" class="category-pill" data-category="Electronics">Electronics</a>
+        <a href="{{ url_for('shop.products', category='Clothing') }}" class="category-pill" data-category="Clothing">Clothing</a>
+        <a href="{{ url_for('shop.products', category='Home Decor') }}" class="category-pill" data-category="Home Decor">Home Decor</a>
+        <a href="{{ url_for('shop.products', category='Books') }}" class="category-pill" data-category="Books">Books</a>
+        <a href="{{ url_for('shop.products', category='Beauty') }}" class="category-pill" data-category="Beauty">Beauty</a>
+    </div>
+</div>
+
+<!-- Featured Products -->
+<div class="container mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">Featured Products</h2>
+        <a href="{{ url_for('shop.products') }}" class="btn btn-outline-primary">
+            View All <i class="fas fa-arrow-right ms-1"></i>
+        </a>
+    </div>
+    
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-3 mb-4">
+            <div class="product-card" data-category="{{ product.category }}">
+                <a href="{{ url_for('shop.product_detail', id=product.id) }}" class="text-decoration-none">
+                    {% if product.image_url %}
+                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="card-img-top" alt="Placeholder">
+                    {% endif %}
+                    <div class="card-body">
+                        {% if product.category %}
+                        <span class="badge bg-light text-dark mb-2">{{ product.category }}</span>
+                        {% endif %}
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}</p>
+                        <span class="price">${{ "%.2f"|format(product.price) }}</span>
+                        <div class="d-grid">
+                            <a href="{{ url_for('shop.product_detail', id=product.id) }}" class="btn btn-primary">View Details</a>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Marketplace Benefits -->
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-12 text-center mb-4">
+            <h2 class="section-title">Why Shop With Us</h2>
+            <p class="text-muted">Our marketplace offers benefits for both buyers and sellers</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-store fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Independent Sellers</h5>
+                    <p class="card-text">Support shop owners directly and discover unique products from passionate creators.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-truck fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Fast Shipping</h5>
+                    <p class="card-text">Enjoy quick delivery on all orders and free shipping on purchases over $50.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-shield-alt fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Secure Shopping</h5>
+                    <p class="card-text">Shop with confidence with our secure payment processing and buyer protection.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sell with Us Section -->
+<div class="container-fluid bg-light py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2 class="mb-3">Become a Shop Owner</h2>
+                <p class="lead mb-4">Join our marketplace and start selling your products to customers worldwide.</p>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Easy shop setup with intuitive dashboard</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Reach more customers through our platform</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Secure payment processing and order management</li>
+                </ul>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-warning">
+                    <i class="fas fa-store me-2"></i> Start Selling
+                </a>
+            </div>
+            <div class="col-lg-6">
+                <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" alt="Seller Dashboard" class="img-fluid rounded shadow-lg">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Newsletter Section -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card border-0 shadow">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6 mb-4 mb-lg-0">
+                            <h3 class="mb-3">Subscribe to Our Newsletter</h3>
+                            <p class="text-muted mb-0">Stay updated with new products, special offers, and marketplace news.</p>
+                        </div>
+                        <div class="col-lg-6">
+                            <form class="newsletter-form d-flex">
+                                <div class="input-group">
+                                    <input type="email" class="form-control" placeholder="Your email address" required>
+                                    <button class="btn btn-warning" type="submit">Subscribe</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

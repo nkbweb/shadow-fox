@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Products - Flask Shop{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Categories</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('shop.products') }}" 
+                   class="list-group-item list-group-item-action {% if not request.args.get('category') %}active{% endif %}">
+                    All Products
+                </a>
+                {% for category in categories %}
+                <a href="{{ url_for('shop.products', category=category) }}" 
+                   class="list-group-item list-group-item-action {% if request.args.get('category') == category %}active{% endif %}">
+                    {{ category }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        {% if search_query %}
+        <h2 class="mb-4">Search Results for "{{ search_query }}"</h2>
+        {% if products.total == 0 %}
+        <div class="alert alert-info">
+            No products found for "{{ search_query }}". Try a different search term.
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <div class="row">
+            {% for product in products.items %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    {% if product.image_url %}
+                    <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="card-img-top" alt="Placeholder">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">{{ product.description[:100] }}...</p>
+                        <p class="card-text">
+                            <strong>${{ "%.2f"|format(product.price) }}</strong>
+                            {% if product.stock < 10 %}
+                            <span class="badge bg-danger">Low Stock</span>
+                            {% endif %}
+                        </p>
+                        <a href="{{ url_for('shop.product_detail', id=product.id) }}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if products.pages > 1 %}
+        <nav aria-label="Products navigation">
+            <ul class="pagination justify-content-center">
+                {% if products.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('shop.products', page=products.prev_num, category=request.args.get('category'), q=search_query) }}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+                {% endif %}
+
+                {% for page_num in products.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == products.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('shop.products', page=page_num, category=request.args.get('category'), q=search_query) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('shop.products', page=products.next_num, category=request.args.get('category'), q=search_query) }}">Next</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

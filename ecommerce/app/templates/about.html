@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">About Our Marketplace</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-3">Our Story</h2>
+                    <p>Welcome to our multi-vendor marketplace, where independent shop owners come together to offer a diverse range of high-quality products. Our platform was established with a vision to create a space where customers can discover unique items while supporting small businesses.</p>
+                    <p>Founded in 2025, we've grown from a small community of enthusiastic shop owners to a thriving marketplace with a commitment to quality, authenticity, and exceptional service.</p>
+                    
+                    <h2 class="h4 mb-3 mt-4">Our Mission</h2>
+                    <p>Our mission is to empower shop owners by providing them with the tools and platform they need to succeed in the digital marketplace, while offering customers a seamless shopping experience with access to unique products they won't find elsewhere.</p>
+                    
+                    <h2 class="h4 mb-3 mt-4">What Makes Us Different</h2>
+                    <ul>
+                        <li><strong>Carefully Selected Vendors:</strong> Each shop owner on our platform is carefully selected based on the quality of their products and commitment to customer satisfaction.</li>
+                        <li><strong>Unique Product Range:</strong> We pride ourselves on offering products that you won't find in mainstream stores.</li>
+                        <li><strong>Supporting Independent Businesses:</strong> When you shop with us, you're directly supporting independent shop owners and their passion.</li>
+                        <li><strong>Commitment to Quality:</strong> We maintain high standards for all products available in our marketplace.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">Shop Owner? Join Us!</h3>
+                    <p>Are you a passionate creator or reseller looking to expand your reach? We're always looking for new shop owners to join our marketplace.</p>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Sign Up Now</a>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">Have Questions?</h3>
+                    <p>Our support team is always ready to help with any questions you might have about our marketplace or the products we offer.</p>
+                    <a href="{{ url_for('main.contact') }}" class="btn btn-outline-primary">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

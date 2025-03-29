@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Shop Owner Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Shop Owner Dashboard</h1>
+    
+    {% if unclaimed_count > 0 %}
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle"></i> There are <strong>{{ unclaimed_count }}</strong> unclaimed products available. 
+        <a href="{{ url_for('admin.unclaimed_products') }}" class="alert-link">Browse them</a> to claim products for your shop.
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-center mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Products</h5>
+                    <p class="card-text display-4">{{ total_products }}</p>
+                    <a href="{{ url_for('admin.products') }}" class="btn btn-primary">Manage Products</a>
+                    {% if unclaimed_count > 0 %}
+                    <a href="{{ url_for('admin.unclaimed_products') }}" class="btn btn-outline-info mt-2">Browse Unclaimed ({{ unclaimed_count }})</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Orders</h5>
+                    <p class="card-text display-4">{{ total_orders }}</p>
+                    <a href="{{ url_for('admin.orders') }}" class="btn btn-primary">View Orders</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Revenue</h5>
+                    <p class="card-text display-4">${{ "%.2f"|format(total_revenue) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Recent Orders</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                        <div class="list-group">
+                            {% for order in recent_orders %}
+                                <a href="{{ url_for('admin.order_detail', id=order.id) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">Order #{{ order.id }}</h6>
+                                        <small>{{ order.created_at.strftime('%Y-%m-%d') }}</small>
+                                    </div>
+                                    <p class="mb-1">${{ "%.2f"|format(order.total_amount) }} - {{ order.status|capitalize }}</p>
+                                    <small>{{ order.user.username }}</small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent orders</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Low Stock Products</h5>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_products %}
+                        <div class="list-group">
+                            {% for product in low_stock_products %}
+                                <a href="{{ url_for('admin.edit_product', id=product.id) }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ product.name }}</h6>
+                                        <span class="badge bg-warning">Stock: {{ product.stock }}</span>
+                                    </div>
+                                    <p class="mb-1">${{ "%.2f"|format(product.price) }}</p>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No low stock products</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - Flask Shop{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Shopping Cart</h1>
+
+{% if cart_items %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart_items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if item.product.image_url %}
+                                        <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" class="img-thumbnail me-2" style="width: 50px;">
+                                        {% else %}
+                                        <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" alt="Placeholder" class="img-thumbnail me-2" style="width: 50px;">
+                                        {% endif %}
+                                        <div>
+                                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                                            <small class="text-muted">{{ item.product.category }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>${{ "%.2f"|format(item.product.price) }}</td>
+                                <td>
+                                    <div class="input-group" style="width: 120px;">
+                                        <button class="btn btn-outline-secondary update-quantity" type="button" data-product-id="{{ item.product.id }}" data-action="decrease">-</button>
+                                        <input type="number" class="form-control text-center quantity-input" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" data-product-id="{{ item.product.id }}">
+                                        <button class="btn btn-outline-secondary update-quantity" type="button" data-product-id="{{ item.product.id }}" data-action="increase">+</button>
+                                    </div>
+                                </td>
+                                <td>${{ "%.2f"|format(item.product.price * item.quantity) }}</td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm remove-from-cart" data-product-id="{{ item.product.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Order Summary</h5>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal</span>
+                    <span>${{ "%.2f"|format(total) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Shipping</span>
+                    <span>Free</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-3">
+                    <strong>Total</strong>
+                    <strong>${{ "%.2f"|format(total) }}</strong>
+                </div>
+                <a href="{{ url_for('shop.checkout') }}" class="btn btn-primary w-100">Proceed to Checkout</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-shopping-cart fa-3x mb-3 text-muted"></i>
+    <h3>Your cart is empty</h3>
+    <p class="text-muted">Add some products to your cart and they will appear here.</p>
+    <a href="{{ url_for('shop.products') }}" class="btn btn-primary">Continue Shopping</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle quantity updates
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    const updateButtons = document.querySelectorAll('.update-quantity');
+    const removeButtons = document.querySelectorAll('.remove-from-cart');
+    
+    // Cart summary elements
+    const subtotalElement = document.querySelector('.card-body .d-flex:nth-child(1) span:last-child');
+    const totalElement = document.querySelector('.card-body .d-flex:nth-child(3) strong:last-child');
+    
+    function updateQuantity(productId, newQuantity) {
+        fetch(`/cart/update/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `quantity=${newQuantity}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showToast(data.error, 'danger');
+                return;
+            }
+            
+            // Update the subtotal in the table
+            const row = document.querySelector(`input[data-product-id="${productId}"]`).closest('tr');
+            const price = parseFloat(row.querySelector('td:nth-child(2)').textContent.replace('$', ''));
+            row.querySelector('td:nth-child(4)').textContent = `$${(price * data.quantity).toFixed(2)}`;
+            
+            // Update the order summary
+            if (subtotalElement && totalElement && data.subtotal) {
+                subtotalElement.textContent = `$${data.subtotal.toFixed(2)}`;
+                totalElement.textContent = `$${data.subtotal.toFixed(2)}`;
+            }
+            
+            showToast('Cart updated successfully', 'success');
+            
+            // Update cart count in navbar
+            updateCartCount(data.quantity);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('An error occurred while updating the quantity.', 'danger');
+        });
+    }
+    
+    function removeFromCart(productId, cartItem) {
+        // Add animation before removal
+        cartItem.style.transition = 'all 0.5s ease';
+        cartItem.style.opacity = '0.5';
+        
+        fetch(`/cart/remove/${productId}`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Apply slide-up animation
+                cartItem.style.overflow = 'hidden';
+                cartItem.style.padding = '0';
+                cartItem.style.height = '0';
+                
+                setTimeout(() => {
+                    cartItem.remove();
+                    
+                    // Update totals
+                    if (subtotalElement && totalElement) {
+                        subtotalElement.textContent = `$${data.cart_total.toFixed(2)}`;
+                        totalElement.textContent = `$${data.cart_total.toFixed(2)}`;
+                    }
+                    
+                    // Update cart count in navbar
+                    updateCartCount(data.cart_count);
+                    
+                    // If cart is empty, show empty cart message
+                    if (data.cart_count === 0) {
+                        const tableContainer = document.querySelector('.table-responsive').closest('.row');
+                        tableContainer.innerHTML = `
+                            <div class="text-center py-5 col-12">
+                                <i class="fas fa-shopping-cart fa-3x mb-3 text-muted"></i>
+                                <h3>Your cart is empty</h3>
+                                <p class="text-muted">Add some products to your cart and they will appear here.</p>
+                                <a href="/products" class="btn btn-primary">Continue Shopping</a>
+                            </div>
+                        `;
+                    }
+                    
+                    showToast('Product removed from cart', 'success');
+                }, 500);
+            } else {
+                cartItem.style.opacity = '1';
+                showToast('Failed to remove product from cart', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            cartItem.style.opacity = '1';
+            showToast('An error occurred while removing the product.', 'danger');
+        });
+    }
+    
+    // Helper function to show toast
+    function showToast(message, type) {
+        // Check if toast container exists, if not create it
+        let toastContainer = document.getElementById('toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-container';
+            toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '5';
+            document.body.appendChild(toastContainer);
+        }
+        
+        // Create toast element
+        const toastId = 'toast-' + Date.now();
+        const toast = document.createElement('div');
+        toast.id = toastId;
+        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
+        // Set toast content
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body">
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Add toast to container
+        toastContainer.appendChild(toast);
+        
+        // Initialize and show toast
+        const bsToast = new bootstrap.Toast(toast, {
+            animation: true,
+            autohide: true,
+            delay: 3000
+        });
+        bsToast.show();
+        
+        // Remove toast when hidden
+        toast.addEventListener('hidden.bs.toast', function() {
+            this.remove();
+        });
+    }
+    
+    // Helper function to update cart count in navbar
+    function updateCartCount(count) {
+        const cartCountElement = document.getElementById('cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = count;
+            if (count > 0) {
+                cartCountElement.style.display = 'inline-block';
+            } else {
+                cartCountElement.style.display = 'none';
+            }
+        }
+    }
+    
+    quantityInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const productId = this.dataset.productId;
+            const newQuantity = parseInt(this.value);
+            if (newQuantity > 0) {
+                updateQuantity(productId, newQuantity);
+            }
+        });
+    });
+    
+    updateButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const action = this.dataset.action;
+            const input = document.querySelector(`input[data-product-id="${productId}"]`);
+            let newQuantity = parseInt(input.value);
+            
+            if (action === 'increase') {
+                newQuantity++;
+            } else if (action === 'decrease' && newQuantity > 1) {
+                newQuantity--;
+            }
+            
+            if (newQuantity > 0) {
+                input.value = newQuantity;
+                updateQuantity(productId, newQuantity);
+            }
+        });
+    });
+    
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productId = this.dataset.productId;
+            const cartItem = this.closest('tr');
+            removeFromCart(productId, cartItem);
+        });
+    });
+});
+</script>
+{% endblock %} 
